@@ -1,6 +1,7 @@
 local api = vim.api
 local configs = require "nvim-treesitter.configs"
 local parsers = require "nvim-treesitter.parsers"
+local queries = require "nvim-treesitter.query"
 
 local shared = require "nvim-treesitter.textobjects.shared"
 local ts_utils = require "nvim-treesitter.ts_utils"
@@ -154,7 +155,16 @@ M.keymaps_per_buf = {}
 function M.attach(bufnr, lang)
   bufnr = bufnr or api.nvim_get_current_buf()
   local config = configs.get_module "textobjects.select"
+
+  local buftype = vim.fn.getbufvar(bufnr or vim.api.nvim_get_current_buf(), '&buftype')
+  if buftype ~= "" then
+    return
+  end
+
   lang = lang or parsers.get_buf_lang(bufnr)
+  if not queries.get_query(lang, "textobjects") then
+    return
+  end
 
   for mapping, query in pairs(config.keymaps) do
     local desc, query_string, query_group
